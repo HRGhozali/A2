@@ -10,7 +10,7 @@
     parent(parent),
     iterateIntoMe(iterateIntoMe)
 {
-    // The first record's data begins immedetialy afer the PageHeader
+    // The first record's data begins immediately after the PageHeader
     this->currentPos = sizeof(PageHeader);
 }
 
@@ -18,7 +18,7 @@
 // this should be called BEFORE the iterator record is first examined
 void MyDB_RecordIterator_Page::getNext() {
     // Pointer to the start of the page's raw bytes
-    char* pageBytes  = (char*)this->parent.myPage->getBytes(parent.myPage);
+    char* pageBytes  = (char*)this->parent.myPage->getBytes(this->parent.myPage);
 
     // Pointer to the current record's location 
     char* currentRecLoc = pageBytes + this->currentPos;
@@ -35,7 +35,7 @@ void MyDB_RecordIterator_Page::getNext() {
 // Checks if the currentPos is still within the used data area of the page.
 bool MyDB_RecordIterator_Page::hasNext() {
     // Get Page Header
-    PageHeader* header= (PageHeader*)this->parent.myPage->getBytes(parent.myPage);
+    PageHeader* header= (PageHeader*)this->parent.myPage->getBytes(this->parent.myPage);
 
     // There is a next record if the current position is before the end of the data end.
     return this->currentPos < (sizeof(PageHeader) + header->endOfData);

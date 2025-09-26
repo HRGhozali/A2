@@ -4,6 +4,7 @@
 #include <memory>
 #include "MyDB_RecordIterator.h"
 #include "MyDB_PageHeader.h"
+#include "MyDB_PageHandle.h"
 #include "MyDB_PageReaderWriter.h"
 
 using namespace std;
