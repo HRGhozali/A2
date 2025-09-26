@@ -24,7 +24,9 @@ void MyDB_PageReaderWriter :: clear () {
 }
 
 MyDB_PageType MyDB_PageReaderWriter :: getType () {
-	return MyDB_PageType :: RegularPage;
+	// Get the page header
+	PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+	return header->pageType;
 }
 
 MyDB_RecordIteratorPtr MyDB_PageReaderWriter :: getIterator (MyDB_RecordPtr iterateIntoMe) {
@@ -32,9 +34,16 @@ MyDB_RecordIteratorPtr MyDB_PageReaderWriter :: getIterator (MyDB_RecordPtr iter
 }
 
 void MyDB_PageReaderWriter :: setType (MyDB_PageType toMe) {
+	PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+	header->pageType = toMe;
 }
 
 bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr appendMe) {
+	// Get the page header
+	PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+	
+	size_t pageSize = this->myPage->getParent().getPageSize()
+	// Get the record size
 	return true;
 }
 

@@ -9,9 +9,10 @@ MyDB_RecordIterator_Table::MyDB_RecordIterator_Table (MyDB_TableReaderWriter &pa
     parent(parent),
     iterateIntoMe(iterateIntoMe)
 {
-    this->currentPos = 0;
+    this->currentPos = this->parent.myTable->getStorageLoc();  // idk if this is right
 }
 
+// Reads 
 void MyDB_RecordIterator_Table::getNext() {
     char* tableBytes = (char*)this->parent.myTable->getStorageLoc().c_str();
 

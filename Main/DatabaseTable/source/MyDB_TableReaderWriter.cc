@@ -7,6 +7,9 @@
 #include <unistd.h>
 #include "MyDB_PageReaderWriter.h"
 #include "MyDB_TableReaderWriter.h"
+#include "MyDB_RecordIterator_Table.h"
+#include "MyDB_Page.h"
+
 
 using namespace std;
 
@@ -19,19 +22,26 @@ MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_Buff
 }
 
 MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
-	MyDB_PageReaderWriter temp;
-	return temp;	
+	if (i >= this->numPages) {
+		cerr << "Error: trying to access page " << i << " in table " << this->myTable->getName() << " which has only " << this->numPages << " pages." << endl;
+		exit (1);
+	}
+
+	MyDB_PagePtr myPage = make_shared<MyDB_Page>(this->myTable, i, this->myBuffer);
+
+	MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(myPage);  // placeholder, fix later!
+	return accessPage;	
 }
 
 MyDB_RecordPtr MyDB_TableReaderWriter :: getEmptyRecord () {
-	return nullptr;
+	return MyDB_RecordPtr(new MyDB_Record(this->myTable->getSchema()));
 }
 
 MyDB_PageReaderWriter MyDB_TableReaderWriter :: last () {
-	MyDB_PageReaderWriter temp;
-	return temp;	
+	MyDB_PagePtr myPage = make_shared<MyDB_Page>(this->myTable, this->lastPage, this->myBuffer);
+	MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(myPage);  // placeholder, fix later!
+	return accessPage;	
 }
-
 
 void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) { 
 }
@@ -49,7 +59,7 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 }
 
 MyDB_RecordIteratorPtr MyDB_TableReaderWriter :: getIterator (MyDB_RecordPtr iterateIntoMe) {
-	return nullptr;
+	return make_shared<MyDB_RecordIterator_Table>(*this, iterateIntoMe);
 }
 
 void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
@@ -58,7 +68,8 @@ void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
 		cerr << "Error: cannot open file " << toMe << " for writing." << endl;
 		exit (1);
 	}
-	write(file, ""); // TODO: Write the table contents to the file
+	
+	//write(file, ""); // TODO: Write the table contents to the file
 	close(file);  // Closes the fie
 }
 
