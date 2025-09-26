@@ -3,6 +3,7 @@
 #define PAGE_RW_C
 
 #include "MyDB_PageReaderWriter.h"
+#include "MyDB_PageHeader.h"
 
 MyDB_PageReaderWriter::MyDB_PageReaderWriter(MyDB_PagePtr pageToManage): myPage(pageToManage) {
     // The initializer list handles everything. The body can be empty.
@@ -10,6 +11,16 @@ MyDB_PageReaderWriter::MyDB_PageReaderWriter(MyDB_PagePtr pageToManage): myPage(
 
 
 void MyDB_PageReaderWriter :: clear () {
+	// Get the page header
+	PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+
+	// Set endOfData and numRecords to zero. Indicates page is empty.
+	header->endOfData = 0;
+	header->numRecords = 0;
+
+	// Sets the correct page type
+	header->pageType = MyDB_PageType::RegularPage;
+
 }
 
 MyDB_PageType MyDB_PageReaderWriter :: getType () {
