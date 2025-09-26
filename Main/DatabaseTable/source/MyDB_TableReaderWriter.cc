@@ -33,10 +33,19 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: last () {
 }
 
 
-void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
+void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) { 
 }
 
 void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
+	int file = open(fromMe.c_str(), O_RDONLY);
+	if (file < 0) {
+		cerr << "Error: cannot open file " << fromMe << " for reading." << endl;
+		exit (1);
+	}
+	
+	// TODO: read stuff
+
+	close(file);
 }
 
 MyDB_RecordIteratorPtr MyDB_TableReaderWriter :: getIterator (MyDB_RecordPtr iterateIntoMe) {

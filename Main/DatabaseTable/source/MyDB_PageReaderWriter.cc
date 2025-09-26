@@ -4,6 +4,11 @@
 
 #include "MyDB_PageReaderWriter.h"
 
+MyDB_PageReaderWriter::MyDB_PageReaderWriter(MyDB_PagePtr pageToManage): myPage(pageToManage) {
+    // The initializer list handles everything. The body can be empty.
+}
+
+
 void MyDB_PageReaderWriter :: clear () {
 }
 

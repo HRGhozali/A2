@@ -5,11 +5,18 @@
 #include "MyDB_PageType.h"
 #include "MyDB_TableReaderWriter.h"
 
+// Forward declare the iterator
+class MyDB_RecordIterator;
+typedef std::shared_ptr <MyDB_RecordIterator> MyDB_RecordIteratorPtr;
+
 class MyDB_PageReaderWriter {
 
 public:
 
 	// ANY OTHER METHODS YOU WANT HERE
+
+	/* Constructor: creates a reader/write for a specific page */
+	MyDB_PageReaderWriter(MyDB_PagePtr pageToManage);
 
 	// empties out the contents of this page, so that it has no records in it
 	// the type of the page is set to MyDB_PageType :: RegularPage
@@ -34,6 +41,13 @@ public:
 private:
 
 	// ANYTHING ELSE YOU WANT HERE
+	string fileName;
+
+	// A smart pointer to the underlaying page whose data we're reading/writing.
+	MyDB_PagePtr myPage;
+
+	// Friend class declaration so that iterator can access myPage.
+	friend class MyDB_RecordIterator_Page;
 };
 
 #endif
