@@ -33,40 +33,52 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 }
 
 MyDB_RecordPtr MyDB_TableReaderWriter :: getEmptyRecord () {
-	return MyDB_RecordPtr(new MyDB_Record(this->myTable->getSchema()));
+	return make_shared<MyDB_Record>(myTable->getSchema());
 }
 
 MyDB_PageReaderWriter MyDB_TableReaderWriter :: last () {
-	MyDB_PagePtr myPage = make_shared<MyDB_Page>(this->myTable, this->lastPage, this->myBuffer);
-	MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(myPage);  // placeholder, fix later!
-	return accessPage;	
+	return (*this)[this->myTable->lastPage()];
 }
 
 void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) { 
-	if (this->lastPage >= 0) {
-		MyDB_PageReaderWriter lastPage = (*this)[this->lastPage];
-		if (lastPage.append(appendMe)) {
-			return;  // Successfully appended record to the last page.
-		}
-	}
+	int lastPageIndex = this->lastPage; // This could return -1 (empty table)
+	if (lastPageIndex < 0) {
+        lastPageIndex = 0;
+    }
 
-	// Otherwise, last page is full; must make new one
+	MyDB_PageReaderWriter lastPage = (*this)[lastPageIndex];
 
-	// Increment # of pages in TableReaderWriter + the parent table
-	this->lastPage++;
-	this->numPages++;
-	this->myTable->setLastPage(this->lastPage);
+	// If the append fails, get a new page and append there
+    if (!lastPage.append(appendMe)) {
+        MyDB_PageReaderWriter newPage = (*this)[lastPageIndex + 1];
+        newPage.clear();
+        newPage.append(appendMe);
+    }
 
-	// Create new page + make PageReaderWriter for it
-	MyDB_PageHandle newPage = this->myBuffer->getPage(this->myTable, this->lastPage);
-	MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(newPage->getPage());
+	// if (this->lastPage >= 0) {
+	// 	MyDB_PageReaderWriter lastPage = (*this)[this->lastPage];
+	// 	if (lastPage.append(appendMe)) {
+	// 		return;  // Successfully appended record to the last page.
+	// 	}
+	// }
 
-	// Append to page?
-	if (!accessPage.append(appendMe)) {
-		cerr << "Error: could not append record to new page in table " << this->myTable->getName() << "." << endl;
-		exit (1);
-	}
-	return;
+	// // Otherwise, last page is full; must make new one
+
+	// // Increment # of pages in TableReaderWriter + the parent table
+	// this->lastPage++;
+	// this->numPages++;
+	// this->myTable->setLastPage(this->lastPage);
+
+	// // Create new page + make PageReaderWriter for it
+	// MyDB_PageHandle newPage = this->myBuffer->getPage(this->myTable, this->lastPage);
+	// MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(newPage->getPage());
+
+	// // Append to page?
+	// if (!accessPage.append(appendMe)) {
+	// 	cerr << "Error: could not append record to new page in table " << this->myTable->getName() << "." << endl;
+	// 	exit (1);
+	// }
+	// return;
 }
 
 void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
