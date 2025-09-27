@@ -4,6 +4,7 @@
 #include <memory>
 #include "MyDB_RecordIterator.h"
 #include "MyDB_TableReaderWriter.h"
+#include "MyDB_Record.h"
 
 using namespace std;
 
@@ -21,9 +22,11 @@ public:
 private:
     MyDB_TableReaderWriter& parent;
 
-    size_t currentPos;
+    int currentPage; // The index of the page we are currently iterating over.
 
     MyDB_RecordPtr iterateIntoMe;
+
+    MyDB_RecordIteratorPtr pageIterator; // The active iterator for the currenPage.
 };
 
 #endif

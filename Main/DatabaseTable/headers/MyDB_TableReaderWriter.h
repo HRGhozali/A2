@@ -19,6 +19,7 @@ class MyDB_TableReaderWriter {
 public:
 
 	// ANYTHING ELSE YOU NEED HERE
+	size_t getNumPages ();
 
 	// create a table reader/writer for the specified table, using the specified
 	// buffer manager

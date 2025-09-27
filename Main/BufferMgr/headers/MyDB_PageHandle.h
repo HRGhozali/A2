@@ -55,6 +55,11 @@ public:
 		page->incRefCount ();
 	}
 
+	// Page getter method
+	 MyDB_PagePtr getPage() {
+        return page;
+    }
+
 private:
 
 	friend class MyDB_PageReaderWriter;

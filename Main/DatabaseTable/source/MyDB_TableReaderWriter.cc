@@ -26,10 +26,9 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 		cerr << "Error: trying to access page " << i << " in table " << this->myTable->getName() << " which has only " << this->numPages << " pages." << endl;
 		exit (1);
 	}
+	MyDB_PageHandle requestedPage = this->myBuffer->getPage(this->myTable, i);
 
-	MyDB_PagePtr myPage = make_shared<MyDB_Page>(this->myTable, i, this->myBuffer);
-
-	MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(myPage);  // placeholder, fix later!
+	MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(requestedPage->getPage()); 
 	return accessPage;	
 }
 
@@ -59,6 +58,7 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 }
 
 MyDB_RecordIteratorPtr MyDB_TableReaderWriter :: getIterator (MyDB_RecordPtr iterateIntoMe) {
+	// Create iterator that will scan the whole table.
 	return make_shared<MyDB_RecordIterator_Table>(*this, iterateIntoMe);
 }
 
@@ -71,6 +71,10 @@ void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
 	
 	//write(file, ""); // TODO: Write the table contents to the file
 	close(file);  // Closes the fie
+}
+
+size_t MyDB_TableReaderWriter :: getNumPages () {
+	return this->numPages;
 }
 
 #endif

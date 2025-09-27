@@ -1,5 +1,5 @@
-#ifndef PAGE_RW_C
-#define PAGE_RW_C
+#ifndef REC_ITER_PAGE_C
+#define REC_ITER_PAGE_C
 
 #include "MyDB_RecordIterator_Page.h"
 #include "MyDB_PageReaderWriter.h"
