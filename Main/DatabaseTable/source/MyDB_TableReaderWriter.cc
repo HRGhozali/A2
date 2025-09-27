@@ -17,14 +17,22 @@ MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_Buff
 	this->myTable = forMe;  // unknown why this does the error...
 	this->myBuffer = myBuffer;
 	this->pageSize = myBuffer->getPageSize();
-	this->numPages = myTable->lastPage() + 1;
-	this->lastPage = myTable->lastPage();
 }
 
+// access the i^th page in this file
 MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
-	if (i >= this->numPages) {
-		cerr << "Error: trying to access page " << i << " in table " << this->myTable->getName() << " which has only " << this->numPages << " pages." << endl;
-		exit (1);
+	int lastPageIndex = this->myTable->lastPage()
+
+	//  if i > lastPageIndex Create an empty page up to and including the requested page.
+	//  Each of those pages will have no records.
+	if (i > lastPageIndex) {
+		for (int p = lastPageIndex + 1; p < (int)i + 1; p++) {
+			
+			MyDB_PageHandle requestedPage = this->myBuffer->getPage(this->myTable, i);
+			MyDB_PageReaderWriter newPageRW = new MyDB_PageReaderWriter(requestedPage->getPage());
+        	newPageRW.clear();
+		}
+		this->myTable->setLastPage(i);
 	}
 	MyDB_PageHandle requestedPage = this->myBuffer->getPage(this->myTable, i);
 
@@ -41,60 +49,41 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: last () {
 }
 
 void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) { 
-	int lastPageIndex = this->lastPage; // This could return -1 (empty table)
+	int lastPageIndex = this->myTable->lastPage(); // This could return -1 (empty table)
 	if (lastPageIndex < 0) {
         lastPageIndex = 0;
     }
 
+	// Get the last page in the table
 	MyDB_PageReaderWriter lastPage = (*this)[lastPageIndex];
 
-	// If the append fails, get a new page and append there
+	// Append to the last page in the table
+	// If that fails, create a new page and append it to there instead
     if (!lastPage.append(appendMe)) {
         MyDB_PageReaderWriter newPage = (*this)[lastPageIndex + 1];
         newPage.clear();
         newPage.append(appendMe);
+		this->myTable->setLastPage(this->lastPage);
     }
-
-	// if (this->lastPage >= 0) {
-	// 	MyDB_PageReaderWriter lastPage = (*this)[this->lastPage];
-	// 	if (lastPage.append(appendMe)) {
-	// 		return;  // Successfully appended record to the last page.
-	// 	}
-	// }
-
-	// // Otherwise, last page is full; must make new one
-
-	// // Increment # of pages in TableReaderWriter + the parent table
-	// this->lastPage++;
-	// this->numPages++;
-	// this->myTable->setLastPage(this->lastPage);
-
-	// // Create new page + make PageReaderWriter for it
-	// MyDB_PageHandle newPage = this->myBuffer->getPage(this->myTable, this->lastPage);
-	// MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(newPage->getPage());
-
-	// // Append to page?
-	// if (!accessPage.append(appendMe)) {
-	// 	cerr << "Error: could not append record to new page in table " << this->myTable->getName() << "." << endl;
-	// 	exit (1);
-	// }
-	// return;
 }
 
 void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
+	// Open file
 	int file = open(fromMe.c_str(), O_RDONLY);
 	if (file < 0) {
 		cerr << "Error: cannot open file " << fromMe << " for reading." << endl;
 		exit (1);
 	}
 	
-	// TODO: KEEP GOING, what if the file has more records than fit in one page?
+	// Create a buffer to read info into and variables to track the current record + the # of bytes read
 	char* buffer = new char[this->pageSize];
 	string currLine = "";
 	size_t bytesRead;
-	while ((bytesRead = read(file,buffer,this->pageSize)) > 0) {
+
+	// Runs until no more bytes can be read from the file
+	while ((bytesRead = read(file,buffer,this->pageSize)) > 0) {  // Reads 1 page at a time
 		for (size_t i = 0; i < bytesRead; i++) {
-			if (buffer[i] == '\n') {
+			if (buffer[i] == '\n') {  // \n denotes separation between records
 				// Process current line as a record
 				MyDB_RecordPtr newRecord = this->getEmptyRecord();
 				newRecord->fromText(currLine);
@@ -104,15 +93,20 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 				currLine += buffer[i];
 			}
 		}
+		// Afterwards, clears buffer to read the next page
+		char* temp = new char[this->pageSize];
+		buffer = temp;
 	}
 	delete[] buffer;
+
+	// If there's anything left in currLine, processes it as one final record
 	if (currLine != "") {
-		// Process last line as a record
 		MyDB_RecordPtr newRecord = this->getEmptyRecord();
 		newRecord->fromText(currLine);
 		this->append(newRecord);
 	}
 
+	// Close the file
 	close(file);
 }
 
@@ -122,14 +116,16 @@ MyDB_RecordIteratorPtr MyDB_TableReaderWriter :: getIterator (MyDB_RecordPtr ite
 }
 
 void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
+	// Open the file to write to it
 	int file = open(toMe.c_str(), O_RDWR | O_CREAT | O_FSYNC | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 	if (file < 0) {
 		cerr << "Error: cannot open file " << toMe << " for writing." << endl;
 		exit (1);
 	}
 	
-	//write(file, ""); // TODO: Write the table contents to the file
-	for (size_t i = 0; i < this->numPages; i++) {
+	// Runs for every page in the table
+	for (size_t i = 0; i < this->myTable->lastPage() + 1; i++) {
+		// Access the current page w/ the 
 		MyDB_PageReaderWriter currPage = (*this)[i];
 		MyDB_RecordPtr tempRecord = this->getEmptyRecord();
 		MyDB_RecordIteratorPtr pageIter = currPage.getIterator(tempRecord);
@@ -140,12 +136,11 @@ void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
 		}
 	}
 
-	close(file);  // Closes the fie
+	close(file);  // Closes the file
 }
 
 size_t MyDB_TableReaderWriter :: getNumPages () {
-	return this->numPages;
+	return this->myTable->lastPage() + 1;
 }
 
 #endif
-

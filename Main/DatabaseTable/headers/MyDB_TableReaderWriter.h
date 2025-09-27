@@ -55,8 +55,6 @@ private:
 	MyDB_TablePtr myTable;
 	MyDB_BufferManagerPtr myBuffer;
 	size_t pageSize;
-	size_t numPages;
-	size_t lastPage;  // Accessing the last page fast
 
 	friend class MyDB_RecordIterator_Table;
 };
