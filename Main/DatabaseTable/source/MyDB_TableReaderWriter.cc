@@ -43,6 +43,30 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: last () {
 }
 
 void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) { 
+	if (this->lastPage >= 0) {
+		MyDB_PageReaderWriter lastPage = (*this)[this->lastPage];
+		if (lastPage.append(appendMe)) {
+			return;  // Successfully appended record to the last page.
+		}
+	}
+
+	// Otherwise, last page is full; must make new one
+
+	// Increment # of pages in TableReaderWriter + the parent table
+	this->lastPage++;
+	this->numPages++;
+	this->myTable->setLastPage(this->lastPage);
+
+	// Create new page + make PageReaderWriter for it
+	MyDB_PageHandle newPage = this->myBuffer->getPage(this->myTable, this->lastPage);
+	MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(newPage->getPage());
+
+	// Append to page?
+	if (!accessPage.append(appendMe)) {
+		cerr << "Error: could not append record to new page in table " << this->myTable->getName() << "." << endl;
+		exit (1);
+	}
+	return;
 }
 
 void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
@@ -52,7 +76,30 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 		exit (1);
 	}
 	
-	// TODO: read stuff
+	// TODO: KEEP GOING, what if the file has more records than fit in one page?
+	char* buffer = new char[this->pageSize];
+	string currLine = "";
+	size_t bytesRead;
+	while ((bytesRead = read(file,buffer,this->pageSize)) > 0) {
+		for (size_t i = 0; i < bytesRead; i++) {
+			if (buffer[i] == '\n') {
+				// Process current line as a record
+				MyDB_RecordPtr newRecord = this->getEmptyRecord();
+				newRecord->fromText(currLine);
+				this->append(newRecord);
+				currLine = "";
+			} else {
+				currLine += buffer[i];
+			}
+		}
+	}
+	delete[] buffer;
+	if (currLine != "") {
+		// Process last line as a record
+		MyDB_RecordPtr newRecord = this->getEmptyRecord();
+		newRecord->fromText(currLine);
+		this->append(newRecord);
+	}
 
 	close(file);
 }
@@ -70,6 +117,17 @@ void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
 	}
 	
 	//write(file, ""); // TODO: Write the table contents to the file
+	for (size_t i = 0; i < this->numPages; i++) {
+		MyDB_PageReaderWriter currPage = (*this)[i];
+		MyDB_RecordPtr tempRecord = this->getEmptyRecord();
+		MyDB_RecordIteratorPtr pageIter = currPage.getIterator(tempRecord);
+		while (pageIter->hasNext()) {
+			pageIter->getNext();
+			string recordString = to_string(*tempRecord) + "\n";
+			write(file, recordString.c_str(), recordString.length());
+		}
+	}
+
 	close(file);  // Closes the fie
 }
 
