@@ -33,16 +33,28 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 }
 
 MyDB_RecordPtr MyDB_TableReaderWriter :: getEmptyRecord () {
-	return MyDB_RecordPtr(new MyDB_Record(this->myTable->getSchema()));
+	return make_shared<MyDB_Record>(myTable->getSchema());
 }
 
 MyDB_PageReaderWriter MyDB_TableReaderWriter :: last () {
-	MyDB_PagePtr myPage = make_shared<MyDB_Page>(this->myTable, this->lastPage, this->myBuffer);
-	MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(myPage);  // placeholder, fix later!
-	return accessPage;	
+	return (*this)[this->myTable->lastPage()];
 }
 
 void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) { 
+	int lastPageIndex = this->lastPage; // This could return -1 (empty table)
+	if (lastPageIndex < 0) {
+        lastPageIndex = 0;
+    }
+
+	MyDB_PageReaderWriter lastPage = (*this)[lastPageIndex];
+
+	// If the append fails, get a new page and append there
+    if (!lastPage.append(appendMe)) {
+        MyDB_PageReaderWriter newPage = (*this)[lastPageIndex + 1];
+        newPage.clear();
+        newPage.append(appendMe);
+    }
+
 }
 
 void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
