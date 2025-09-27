@@ -52,10 +52,16 @@ private:
 
 	// ANYTHING YOU NEED HERE
 
+	// Pointer to parent table
 	MyDB_TablePtr myTable;
+
+	// Pointer to buffer manager
 	MyDB_BufferManagerPtr myBuffer;
+
+	// Page size
 	size_t pageSize;
 
+	// Allows the iterator to access the table class
 	friend class MyDB_RecordIterator_Table;
 };
 

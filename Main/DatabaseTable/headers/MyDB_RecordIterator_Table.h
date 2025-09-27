@@ -20,10 +20,12 @@ public:
     bool hasNext() override;
 
 private:
+    // Parent table reader/writer
     MyDB_TableReaderWriter& parent;
 
     int currentPage; // The index of the page we are currently iterating over.
 
+    // Pointer to iterate things into
     MyDB_RecordPtr iterateIntoMe;
 
     MyDB_RecordIteratorPtr pageIterator; // The active iterator for the currenPage.

@@ -14,7 +14,7 @@
 using namespace std;
 
 MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_BufferManagerPtr myBuffer) {
-	this->myTable = forMe;  // unknown why this does the error...
+	this->myTable = forMe;
 	this->myBuffer = myBuffer;
 	this->pageSize = myBuffer->getPageSize();
 }
@@ -23,17 +23,19 @@ MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_Buff
 MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 	int lastPageIndex = this->myTable->lastPage()
 
-	//  if i > lastPageIndex Create an empty page up to and including the requested page.
+	//  if i > lastPageIndex, create an empty page up to and including the requested page.
 	//  Each of those pages will have no records.
 	if (i > lastPageIndex) {
-		for (int p = lastPageIndex + 1; p < (int)i + 1; p++) {
+		for (int p = lastPageIndex + 1; p <= i; p++) {
 			
-			MyDB_PageHandle requestedPage = this->myBuffer->getPage(this->myTable, i);
-			MyDB_PageReaderWriter newPageRW = new MyDB_PageReaderWriter(requestedPage->getPage());
-        	newPageRW.clear();
+			MyDB_PageHandle intermediatePageHandle = this->myBuffer->getPage(this->myTable, p);
+			MyDB_PageReaderWriter(intermediatePageHandle->getPage()).clear();
 		}
+		// Update the table's metadata to reflect the new last page.
 		this->myTable->setLastPage(i);
 	}
+
+	// Get a handle to the request page "i"
 	MyDB_PageHandle requestedPage = this->myBuffer->getPage(this->myTable, i);
 
 	MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(requestedPage->getPage()); 
@@ -125,10 +127,14 @@ void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
 	
 	// Runs for every page in the table
 	for (size_t i = 0; i < this->myTable->lastPage() + 1; i++) {
-		// Access the current page w/ the 
+		// Access the current page w/ a new reader/writer
 		MyDB_PageReaderWriter currPage = (*this)[i];
+
+		// Create a record pointer to store records + an iterator to iterate over them
 		MyDB_RecordPtr tempRecord = this->getEmptyRecord();
 		MyDB_RecordIteratorPtr pageIter = currPage.getIterator(tempRecord);
+
+		// Iterate through all records in the page + write them to the file
 		while (pageIter->hasNext()) {
 			pageIter->getNext();
 			string recordString = to_string(*tempRecord) + "\n";
