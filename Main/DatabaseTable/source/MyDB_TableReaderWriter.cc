@@ -35,11 +35,10 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 		this->myTable->setLastPage(i);
 	}
 
-	// Get a handle to the request page "i"
+	// Get a handle to the requested page "i"
 	MyDB_PageHandle requestedPage = this->myBuffer->getPage(this->myTable, i);
 
-	MyDB_PageReaderWriter accessPage = MyDB_PageReaderWriter(requestedPage->getPage()); 
-	return accessPage;	
+	return  MyDB_PageReaderWriter(requestedPage->getPage());
 }
 
 MyDB_RecordPtr MyDB_TableReaderWriter :: getEmptyRecord () {
