@@ -21,7 +21,7 @@ public:
 	// ANY OTHER METHODS YOU WANT HERE
 
 	/* Constructor: creates a reader/write for a specific page */
-	MyDB_PageReaderWriter(MyDB_PagePtr pageToManage);
+	MyDB_PageReaderWriter(MyDB_PageHandleBase pageToManage);
 
 	// empties out the contents of this page, so that it has no records in it
 	// the type of the page is set to MyDB_PageType :: RegularPage
@@ -49,7 +49,7 @@ private:
 	string fileName;
 
 	// A smart pointer to the underlaying page whose data we're reading/writing.
-	MyDB_PagePtr myPage;
+	MyDB_PageHandleBase myPage;
 
 	// Friend class declaration so that iterator can access myPage.
 	friend class MyDB_RecordIterator_Page;

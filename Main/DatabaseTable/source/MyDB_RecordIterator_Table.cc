@@ -13,8 +13,16 @@ MyDB_RecordIterator_Table::MyDB_RecordIterator_Table (MyDB_TableReaderWriter &pa
     // Start iterating from the very first page.
     this->currentPage = 0;
 
-    // Get the iterator for the first page.
-    this->pageIterator = this->parent[this->currentPage].getIterator(iterateIntoMe);
+    // Check if the table has any pages before trying to get an iterator.
+    if (this->parent.getNumPages() > 0) {
+         // Get the iterator for the first page.
+        this->pageIterator = this->parent[this->currentPage].getIterator(iterateIntoMe);
+    } else {
+        // If the table is empty, store a nullptr.
+        this->pageIterator = nullptr;
+    }
+
+   
 }
 
 // put the contents of the next record in the file into the iterator record
@@ -27,6 +35,11 @@ void MyDB_RecordIterator_Table::getNext() {
 
 // return true iff there is another record in the file
 bool MyDB_RecordIterator_Table::hasNext() {
+    // First, handle the case where the table was empty from the start.
+    if (pageIterator == nullptr) {
+        return false;
+    }
+    
     // If the current page iterator has more records, return true
     cout << "checking for next - table\n";
     if (pageIterator->hasNext()) {

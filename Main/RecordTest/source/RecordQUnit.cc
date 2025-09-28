@@ -42,7 +42,9 @@ void initialize() {
 	MyDB_TableReaderWriter supplierTable(myTable, myMgr);
 
 	// load it from a text file
+	cout << "before loadFromTextFile..." << flush;
 	supplierTable.loadFromTextFile("supplier.tbl");
+	cout << "after loadFromTextFile..." << flush;
 
 	// put the supplier table into the catalog
 	myTable->putInCatalog(myCatalog);

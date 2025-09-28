@@ -3,6 +3,7 @@
 #define TABLE_RW_C
 
 #include <fstream>
+#include <iostream>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string>
@@ -14,9 +15,11 @@
 
 using namespace std;
 
-MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_BufferManagerPtr myBuffer) {
-	this->myTable = forMe;
-	this->myBuffer = myBuffer;
+// Constructor uses initializer list 
+MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_BufferManagerPtr myBuffer) :
+	myTable(forMe),
+	myBuffer(myBuffer)
+{
 	this->pageSize = myBuffer->getPageSize();
 }
 
@@ -70,33 +73,41 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 }
 
 void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
+
+	// First, clear the table by resetting its last page index
+    myTable->setLastPage(-1);
+
+
 	// Open file
-	int file = open(fromMe.c_str(), O_RDONLY);
-	if (file < 0) {
-		cerr << "Error: cannot open file " << fromMe << " for reading." << endl;
-		exit (1);
-	}
+	ifstream file(fromMe);
+    if (!file.is_open()) {
+        cerr << "Error: could not open text file " << fromMe << endl;
+        return;
+    }
+
+	// Get the first page to start writing to
+    int currentPageIndex = 0;
+    MyDB_PageReaderWriter currentPage = (*this)[currentPageIndex];
+    currentPage.clear(); // Ensure it's empty
 	
-	// Create a buffer to read info into and variables to track the current record + the # of bytes read
-	char* buffer = new char[this->pageSize];
-	string currLine = "";
-	size_t bytesRead;
+	// Create an empty record and keep the current line to read.
+	string currLine;
+	MyDB_RecordPtr newRec = this->getEmptyRecord();
 
-	// Runs until no more bytes can be read from the file
-	while ((bytesRead = read(file,buffer,this->pageSize)) > 0) {  // Reads 1 page at a time
-		char* temp = buffer;
-		char* temp_end = buffer + bytesRead;
+	// Runs until no more lines can be read from the file
+	while (getline(file, currLine)) {  // Reads 1 line at a time
+		// Use fromString to parse the text line
+		newRec->fromString(currLine);
 
-		while (temp < temp_end) {
-			MyDB_RecordPtr tempRecord = this->getEmptyRecord();
-			temp = (char*) tempRecord->fromBinary(temp);
-			this->append(tempRecord);
+		// Try to append the record. If the page is full get the next page and try again
+		while (!currentPage.append(newRec)) {
+			currentPageIndex++;
+			currentPage = (*this)[currentPageIndex]; 
+			// Clear page to ensure its empty before trying to append to it.
+			currentPage.clear();
 		}
 	}
-	delete[] buffer;
-
-	// Close the file
-	close(file);
+	file.close();
 }
 
 MyDB_RecordIteratorPtr MyDB_TableReaderWriter :: getIterator (MyDB_RecordPtr iterateIntoMe) {

@@ -6,7 +6,7 @@
 #include "MyDB_PageHeader.h"
 #include "MyDB_RecordIterator_Page.h"
 
-MyDB_PageReaderWriter::MyDB_PageReaderWriter(MyDB_PagePtr pageToManage): myPage(pageToManage) {
+MyDB_PageReaderWriter::MyDB_PageReaderWriter(MyDB_PageHandleBase pageToManage): myPage(pageToManage) {
     // The initializer list handles everything. The body can be empty.
 }
 
@@ -14,7 +14,18 @@ MyDB_PageReaderWriter::MyDB_PageReaderWriter(MyDB_PagePtr pageToManage): myPage(
 // the type of the page is set to MyDB_PageType :: RegularPage
 void MyDB_PageReaderWriter :: clear () {
 	// Get the page header
-	PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+
+	// Get the raw pointer to the page's bytes
+    void* rawBytes = this->myPage.getBytes();
+
+    // If this happens, it means clear() was called inappropriately.
+    if (rawBytes == nullptr) {
+        throw runtime_error("Error: clear() called on a page with no buffer.");
+    }
+
+	// Cast rawBytes to a PageHeader.
+    PageHeader* header = (PageHeader*)rawBytes;
 
 	// Set endOfData and numRecords to zero. Indicates page is empty.
 	header->endOfData = 0;
@@ -27,7 +38,18 @@ void MyDB_PageReaderWriter :: clear () {
 
 MyDB_PageType MyDB_PageReaderWriter :: getType () {
 	// Get the page header
-	PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+
+	// Get the raw pointer to the page's bytes
+    void* rawBytes = this->myPage.getBytes();
+
+    // If this happens, it means clear() was called inappropriately.
+    if (rawBytes == nullptr) {
+        throw runtime_error("Error: clear() called on a page with no buffer.");
+    }
+
+	// Cast rawBytes to a PageHeader.
+    PageHeader* header = (PageHeader*)rawBytes;
 	return header->pageType;
 }
 
@@ -39,16 +61,39 @@ MyDB_RecordIteratorPtr MyDB_PageReaderWriter :: getIterator (MyDB_RecordPtr iter
 
 void MyDB_PageReaderWriter :: setType (MyDB_PageType toMe) {
 	// Get page header
-	PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+
+	// Get the raw pointer to the page's bytes
+    void* rawBytes = this->myPage.getBytes();
+
+    // If this happens, it means clear() was called inappropriately.
+    if (rawBytes == nullptr) {
+        throw runtime_error("Error: clear() called on a page with no buffer.");
+    }
+
+	// Cast rawBytes to a PageHeader.
+    PageHeader* header = (PageHeader*)rawBytes;
+
 	// Set page type to toMe.
 	header->pageType = toMe;
 }
 
 bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr appendMe) {
 	// Get the page header
-	PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
+
+	// Get the raw pointer to the page's bytes
+    void* rawBytes = this->myPage.getBytes();
+
+    // If this happens, it means clear() was called inappropriately.
+    if (rawBytes == nullptr) {
+        throw runtime_error("Error: clear() called on a page with no buffer.");
+    }
+
+	// Cast rawBytes to a PageHeader.
+    PageHeader* header = (PageHeader*)rawBytes;
 	
-	size_t pageSize = this->myPage->getParent().getPageSize();
+	size_t pageSize = this->myPage.getParent().getPageSize();
 
 	// Get the record size (amount of data in the record buffer).
 	size_t recordSize = appendMe->getBinarySize();
@@ -59,7 +104,7 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr appendMe) {
 	}
 
 	// Position in page where to write the new record.
-	char* pageBytes = (char*)myPage->getBytes(this->myPage);
+	char* pageBytes = (char*)rawBytes;
     char* newRecPos = pageBytes + sizeof(PageHeader) + header->endOfData;
 
 	// Use the record's method to write its binary data.

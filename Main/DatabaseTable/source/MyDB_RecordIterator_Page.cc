@@ -17,18 +17,24 @@
 // Reads the next record from the page into the iterateIntoMe record (assumes it exists)
 // this should be called BEFORE the iterator record is first examined
 void MyDB_RecordIterator_Page::getNext() {
-    // Pointer to the start of the page's raw bytes
-    char* pageBytes  = (char*)this->parent.myPage->getBytes(this->parent.myPage);
+    // Get the raw pointer to the page's bytes
+    void* rawBytes = this->parent.myPage.getBytes();
 
-    // Pointer to the current record's location 
-    char* currentRecLoc = pageBytes + this->currentPos;
+    // If this happens, it means getNext() was called inappropriately.
+    if (rawBytes == nullptr) {
+        throw runtime_error("Error: getNext() called on a page with no buffer.");
+    }
 
-    // Deserialize the record from this location into the shared record object
-    // The fromBinary method returns a pointer to the byte AFTER the record it just read.
+    char* pageBytes = (char*)rawBytes;
+
+    // Pointer to the current record's location
+    char* currentRecLoc = pageBytes + currentPos;
+
+    // Deserialize the record from this location
     void* nextPosPtr = this->iterateIntoMe->fromBinary(currentRecLoc);
 
-    // Update currPos cursor to the new position by calculating the offset from the page start.
-    this->currentPos = (char*) nextPosPtr - pageBytes;
+    // Update the cursor to the new position
+    currentPos = (char*)nextPosPtr - pageBytes;
 }
 
 // Returns true iff there is another record in the page
@@ -36,9 +42,18 @@ void MyDB_RecordIterator_Page::getNext() {
 bool MyDB_RecordIterator_Page::hasNext() {
     cout << "checking for next - page\n";
     cout << "getting page header\n";
-    // Get Page Header
-    PageHeader* header= (PageHeader*)this->parent.myPage->getBytes(this->parent.myPage);
 
+    // Get the raw pointer, which could be null
+    void* rawBytes = this->parent.myPage.getBytes();
+
+    // Check for null before using the pointer
+    if (rawBytes == nullptr) {
+        cout << "page has no valid memory buffer\n";
+        return false;
+    }
+
+    cout << "getting page header\n";
+    PageHeader* header = (PageHeader*)rawBytes;
     cout << "returning if next\n";
     // There is a next record if the current position is before the end of the data end.
     return this->currentPos < (sizeof(PageHeader) + header->endOfData);
