@@ -15,10 +15,12 @@ MyDB_RecordIterator_Table::MyDB_RecordIterator_Table (MyDB_TableReaderWriter &pa
 
     // Check if the table has any pages before trying to get an iterator.
     if (this->parent.getNumPages() > 0) {
+        cout << "RECORD TABLE DEBUG: Getting first page iterator" << endl;
          // Get the iterator for the first page.
         this->pageIterator = this->parent[this->currentPage].getIterator(iterateIntoMe);
     } else {
         // If the table is empty, store a nullptr.
+        cout << "RECORD TABLE DEBUG: Table empty" << endl;
         this->pageIterator = nullptr;
     }
 
@@ -36,28 +38,30 @@ void MyDB_RecordIterator_Table::getNext() {
 // return true iff there is another record in the file
 bool MyDB_RecordIterator_Table::hasNext() {
     // First, handle the case where the table was empty from the start.
+    cout << "RECORD TABLE DEBUG: Checking if table has next" << endl;
     if (pageIterator == nullptr) {
+        cout << "RECORD TABLE DEBUG: Table empty" << endl;
         return false;
     }
     
     // If the current page iterator has more records, return true
-    cout << "checking for next - table\n";
+    cout << "RECORD TABLE DEBUG: Checking if page has more records" << endl;
     if (pageIterator->hasNext()) {
-        cout << "page has another record - true\n";
+        cout << "RECORD TABLE DEBUG: Page has next" << endl;
         return true;
     }
 
     // If not, try to advance to the next page.
     // Keep trying until we find a page with records or run out of pages
-    cout << "page has no other record - find another page\n";
+    cout << "RECORD TABLE DEBUG: Page has none - find new page" << endl;
     while (1) {
-        cout << "moving to new page\n";
+        cout << "RECORD TABLE DEBUG: Moving to new page" << endl;
         // Move up to the next page
         this->currentPage++;
 
         // Check if we have run past the last page of the table
         if (this->currentPage >= this->parent.getNumPages()) {
-            cout << "no pages left - false\n";
+            cout << "RECORD TABLE DEBUG: No pages left - false" << endl;
             return false; // No more pages left
         }
 
@@ -66,7 +70,7 @@ bool MyDB_RecordIterator_Table::hasNext() {
 
         // Check if this new page has any records
         if (pageIterator->hasNext()) {
-            cout << "found non-empty page\n";
+            cout << "RECORD TABLE DEBUG: Found non-empty page" << endl;
             return true; // found a non-empty page
         }
          

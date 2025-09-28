@@ -18,32 +18,34 @@
 // this should be called BEFORE the iterator record is first examined
 void MyDB_RecordIterator_Page::getNext() {
     // Get the raw pointer to the page's bytes
+    cout << "RECORD PAGE DEBUG: Getting raw bytes" << endl;
     void* rawBytes = this->parent.myPage.getBytes();
 
     // If this happens, it means getNext() was called inappropriately.
     if (rawBytes == nullptr) {
         throw runtime_error("Error: getNext() called on a page with no buffer.");
     }
-
+    cout << "RECORD PAGE DEBUG: Getting page bytes" << endl;
     char* pageBytes = (char*)rawBytes;
 
     // Pointer to the current record's location
+    cout << "RECORD PAGE DEBUG: Getting pointer to current record location" << endl;
     char* currentRecLoc = pageBytes + currentPos;
 
     // Deserialize the record from this location
+    cout << "RECORD PAGE DEBUG: Deserializing record from location" << endl;
     void* nextPosPtr = this->iterateIntoMe->fromBinary(currentRecLoc);
 
     // Update the cursor to the new position
+    cout << "RECORD PAGE DEBUG: Updating cursor" << endl;
     currentPos = (char*)nextPosPtr - pageBytes;
 }
 
 // Returns true iff there is another record in the page
 // Checks if the currentPos is still within the used data area of the page.
 bool MyDB_RecordIterator_Page::hasNext() {
-    cout << "checking for next - page\n";
-    cout << "getting page header\n";
-
     // Get the raw pointer, which could be null
+    cout << "RECORD PAGE DEBUG: Getting raw pointer" << endl;
     void* rawBytes = this->parent.myPage.getBytes();
 
     // Check for null before using the pointer

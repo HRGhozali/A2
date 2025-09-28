@@ -44,7 +44,7 @@ void initialize() {
 	// load it from a text file
 	cout << "before loadFromTextFile..." << flush;
 	supplierTable.loadFromTextFile("supplier.tbl");
-	cout << "after loadFromTextFile..." << flush;
+	cout << "after loadFromTextFile. Number of table pages: " << supplierTable.getNumPages() << endl;
 
 	// put the supplier table into the catalog
 	myTable->putInCatalog(myCatalog);
@@ -144,6 +144,7 @@ int main(int argc, char *argv[]) {
 
 			cout << "count..." << flush;
 			while (myIter->hasNext()) {
+				cout << counter << endl;  // DEBUG
 				myIter->getNext();
 				counter++;
 			}
