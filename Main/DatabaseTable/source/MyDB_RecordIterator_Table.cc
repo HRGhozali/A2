@@ -28,19 +28,23 @@ void MyDB_RecordIterator_Table::getNext() {
 // return true iff there is another record in the file
 bool MyDB_RecordIterator_Table::hasNext() {
     // If the current page iterator has more records, return true
+    cout << "checking for next - table\n";
     if (pageIterator->hasNext()) {
+        cout << "page has another record - true\n";
         return true;
     }
 
     // If not, try to advance to the next page.
     // Keep trying until we find a page with records or run out of pages
-
+    cout << "page has no other record - find another page\n";
     while (1) {
+        cout << "moving to new page\n";
         // Move up to the next page
         this->currentPage++;
 
         // Check if we have run past the last page of the table
         if (this->currentPage >= this->parent.getNumPages()) {
+            cout << "no pages left - false\n";
             return false; // No more pages left
         }
 
@@ -49,6 +53,7 @@ bool MyDB_RecordIterator_Table::hasNext() {
 
         // Check if this new page has any records
         if (pageIterator->hasNext()) {
+            cout << "found non-empty page\n";
             return true; // found a non-empty page
         }
          

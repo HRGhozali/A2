@@ -34,9 +34,12 @@ void MyDB_RecordIterator_Page::getNext() {
 // Returns true iff there is another record in the page
 // Checks if the currentPos is still within the used data area of the page.
 bool MyDB_RecordIterator_Page::hasNext() {
+    cout << "checking for next - page\n";
+    cout << "getting page header\n";
     // Get Page Header
     PageHeader* header= (PageHeader*)this->parent.myPage->getBytes(this->parent.myPage);
 
+    cout << "returning if next\n";
     // There is a next record if the current position is before the end of the data end.
     return this->currentPos < (sizeof(PageHeader) + header->endOfData);
 }
