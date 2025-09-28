@@ -4,7 +4,12 @@
 #include <memory>
 #include <vector>
 #include <MyDB_Table.h>
+
+// Avoids including multiple times
+#ifndef MYDB_PAGETYPE_WRAPPER
+#define MYDB_PAGETYPE_WRAPPER
 #include "MyDB_PageType.h" // For the enum
+#endif
 
 using namespace std;
 

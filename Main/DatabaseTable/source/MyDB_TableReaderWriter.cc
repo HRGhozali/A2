@@ -5,6 +5,7 @@
 #include <fstream>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string>
 #include "MyDB_PageReaderWriter.h"
 #include "MyDB_TableReaderWriter.h"
 #include "MyDB_RecordIterator_Table.h"
@@ -21,7 +22,7 @@ MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_Buff
 
 // access the i^th page in this file
 MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
-	int lastPageIndex = this->myTable->lastPage()
+	int lastPageIndex = this->myTable->lastPage();
 
 	//  if i > lastPageIndex, create an empty page up to and including the requested page.
 	//  Each of those pages will have no records.
@@ -64,7 +65,7 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
         MyDB_PageReaderWriter newPage = (*this)[lastPageIndex + 1];
         newPage.clear();
         newPage.append(appendMe);
-		this->myTable->setLastPage(this->lastPage);
+		this->myTable->setLastPage(lastPageIndex + 1);
     }
 }
 
@@ -83,29 +84,16 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 
 	// Runs until no more bytes can be read from the file
 	while ((bytesRead = read(file,buffer,this->pageSize)) > 0) {  // Reads 1 page at a time
-		for (size_t i = 0; i < bytesRead; i++) {
-			if (buffer[i] == '\n') {  // \n denotes separation between records
-				// Process current line as a record
-				MyDB_RecordPtr newRecord = this->getEmptyRecord();
-				newRecord->fromText(currLine);
-				this->append(newRecord);
-				currLine = "";
-			} else {
-				currLine += buffer[i];
-			}
+		char* temp = buffer;
+		char* temp_end = buffer + bytesRead;
+
+		while (temp < temp_end) {
+			MyDB_RecordPtr tempRecord = this->getEmptyRecord();
+			temp = (char*) tempRecord->fromBinary(temp);
+			this->append(tempRecord);
 		}
-		// Afterwards, clears buffer to read the next page
-		char* temp = new char[this->pageSize];
-		buffer = temp;
 	}
 	delete[] buffer;
-
-	// If there's anything left in currLine, processes it as one final record
-	if (currLine != "") {
-		MyDB_RecordPtr newRecord = this->getEmptyRecord();
-		newRecord->fromText(currLine);
-		this->append(newRecord);
-	}
 
 	// Close the file
 	close(file);
@@ -136,8 +124,11 @@ void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
 		// Iterate through all records in the page + write them to the file
 		while (pageIter->hasNext()) {
 			pageIter->getNext();
-			string recordString = to_string(*tempRecord) + "\n";
-			write(file, recordString.c_str(), recordString.length());
+			size_t tempSize = tempRecord->getBinarySize();
+			char* temp = new char[tempSize];
+			tempRecord->toBinary(temp);
+			write(file, temp, tempSize);
+			delete[] temp;
 		}
 	}
 

@@ -3,6 +3,7 @@
 
 #include "MyDB_RecordIterator_Table.h"
 #include "MyDB_TableReaderWriter.h"
+#include "MyDB_PageReaderWriter.h"
 #include "MyDB_Table.h"
 
 MyDB_RecordIterator_Table::MyDB_RecordIterator_Table (MyDB_TableReaderWriter &parent, MyDB_RecordPtr iterateIntoMe) :

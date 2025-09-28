@@ -2,7 +2,12 @@
 #ifndef PAGE_RW_H
 #define PAGE_RW_H
 
+// Avoids including multiple times
+#ifndef MYDB_PAGETYPE_WRAPPER
+#define MYDB_PAGETYPE_WRAPPER
 #include "MyDB_PageType.h"
+#endif 
+
 #include "MyDB_TableReaderWriter.h"
 
 // Forward declare the iterator
