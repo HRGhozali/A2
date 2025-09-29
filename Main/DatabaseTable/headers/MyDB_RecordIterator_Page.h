@@ -17,7 +17,7 @@ class MyDB_RecordIterator_Page : public MyDB_RecordIterator {
 public:
 
     // Constructor: accepts a reference to its parent and a record to iterate into
-    MyDB_RecordIterator_Page(MyDB_PageReaderWriter &parent, MyDB_RecordPtr iterateIntoMe);
+    MyDB_RecordIterator_Page(MyDB_PageReaderWriter &parent, MyDB_PageHandleBase iterateOverPage, MyDB_RecordPtr iterateIntoMe);
 
     // The overriden virtual functions
     void getNext() override;
@@ -27,6 +27,9 @@ private:
 
     // A reference to the object that manages the page we are iterating over
     MyDB_PageReaderWriter& parent;
+
+    // Reference to page that's being iterated over
+    MyDB_PageHandleBase iteratePage;
 
     // The current byte offset into the page's record data. Defined from the beginning of the page.
     size_t currentPos;

@@ -56,7 +56,7 @@ MyDB_PageType MyDB_PageReaderWriter :: getType () {
 MyDB_RecordIteratorPtr MyDB_PageReaderWriter :: getIterator (MyDB_RecordPtr iterateIntoMe) {
 	// Create a new page iterator, injecting a reference to this MyDB_PageReaderWriter object
 	// and the record that the iterator will populate.
-	return make_shared<MyDB_RecordIterator_Page>(*this, iterateIntoMe);
+	return make_shared<MyDB_RecordIterator_Page>(*this, this->myPage, iterateIntoMe);
 }
 
 void MyDB_PageReaderWriter :: setType (MyDB_PageType toMe) {

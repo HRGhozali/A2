@@ -6,8 +6,9 @@
 #include "MyDB_Page.h"
 
 // Constructor - Initializes the reference in the initializer list (errror fix)
- MyDB_RecordIterator_Page::MyDB_RecordIterator_Page (MyDB_PageReaderWriter& parent, MyDB_RecordPtr iterateIntoMe) :
+ MyDB_RecordIterator_Page::MyDB_RecordIterator_Page (MyDB_PageReaderWriter& parent, MyDB_PageHandleBase iterateOverPage, MyDB_RecordPtr iterateIntoMe) :
     parent(parent),
+    iteratePage(iterateOverPage),
     iterateIntoMe(iterateIntoMe)
 {
     // The first record's data begins immediately after the PageHeader
@@ -19,7 +20,7 @@
 void MyDB_RecordIterator_Page::getNext() {
     // Get the raw pointer to the page's bytes
     cout << "RECORD PAGE DEBUG: Getting raw bytes" << endl;
-    void* rawBytes = this->parent.myPage.getBytes();
+    void* rawBytes = this->iteratePage.getBytes();
 
     // If this happens, it means getNext() was called inappropriately.
     if (rawBytes == nullptr) {
@@ -46,7 +47,7 @@ void MyDB_RecordIterator_Page::getNext() {
 bool MyDB_RecordIterator_Page::hasNext() {
     // Get the raw pointer, which could be null
     cout << "RECORD PAGE DEBUG: Getting raw pointer" << endl;
-    void* rawBytes = this->parent.myPage.getBytes();
+    void* rawBytes = this->iteratePage.getBytes();
 
     // Check for null before using the pointer
     if (rawBytes == nullptr) {
