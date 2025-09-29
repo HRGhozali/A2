@@ -32,11 +32,13 @@ MyDB_RecordIterator_Table::MyDB_RecordIterator_Table (MyDB_TableReaderWriter &pa
 void MyDB_RecordIterator_Table::getNext() {
     // Rely on hasNext() to have set up the correct page iterator.
     // Delegate the actual work to the underlying page iterator.
+    cout << "RecordIterator_Table getNext()\n";
     this->pageIterator->getNext();
 }
 
 // return true iff there is another record in the file
 bool MyDB_RecordIterator_Table::hasNext() {
+    cout << "RecordIterator_Table hasNext()\n";
     // If table empty
     if (!this->pageIterator) {
         cout << "RECORD TABLE DEBUG: Table empty" << endl;

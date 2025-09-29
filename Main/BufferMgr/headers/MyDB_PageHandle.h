@@ -63,6 +63,7 @@ public:
 private:
 
 	friend class MyDB_PageReaderWriter;
+	friend class MyDB_RecordIterator_Page;
 
 	// get the buffer manager
 	MyDB_BufferManager &getParent () {
