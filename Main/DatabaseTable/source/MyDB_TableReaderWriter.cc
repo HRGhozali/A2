@@ -21,6 +21,39 @@ MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_Buff
 	myBuffer(myBuffer)
 {
 	this->pageSize = myBuffer->getPageSize();
+	if (this->myTable->lastPage() == -1) {
+		// TODO: create page
+		MyDB_PageHandle intermediatePageHandle = this->myBuffer->getPage(this->myTable, 0);
+		MyDB_PageReaderWriter newPage(intermediatePageHandle);
+		newPage.clear();
+		// TODO: Make header overlay for page
+		this->lastPageRW = newPage;
+		this->myTable->setLastPage(0);
+	}
+	else {
+		MyDB_PageHandle intermediatePageHandle = this->myBuffer->getPage(this->myTable, this->myTable->lastPage());
+		MyDB_PageReaderWriter newPage(intermediatePageHandle);
+		this->lastPageRW = newPage;
+	}
+	// check if table is empty
+	// if it is...
+	// go to slot 0
+	// write out a new page w/ pagereaderwriter that corresponds to the last page
+	
+	
+	// if someone has page 0 (pageHandle from buffermanager)
+
+	// iterator needs to know
+	// page reader writer it's using
+	// where it is in bytes
+
+	// when someone iterates past the end of the page, iterator has to request has new page.
+	// when reaching end of page, go to buffer manager + call getpage for the next page
+
+	// how to get a pagereaderwriter
+	// go to buffer manager and ask for the page
+	// get the page handle
+	// make the pagereaderwriter
 }
 
 // access the i^th page in this file
@@ -34,7 +67,7 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 		for (size_t p = lastPageIndex + 1; p <= i; p++) {
 			//cout << "Making page " << p << endl;
 			MyDB_PageHandle intermediatePageHandle = this->myBuffer->getPage(this->myTable, p);
-			MyDB_PageReaderWriter newPage(intermediatePageHandle->getPage());
+			MyDB_PageReaderWriter newPage(intermediatePageHandle);  // ->getPage()
 			newPage.clear();
 		}
 		// Update the table's metadata to reflect the new last page.
@@ -45,7 +78,7 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 	// Get a handle to the requested page "i"
 	MyDB_PageHandle requestedPage = this->myBuffer->getPage(this->myTable, i);
 
-	return  MyDB_PageReaderWriter(requestedPage->getPage());
+	return  MyDB_PageReaderWriter(requestedPage);  // ->getPage()
 }
 
 MyDB_RecordPtr MyDB_TableReaderWriter :: getEmptyRecord () {
@@ -63,7 +96,8 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
     }
 
 	// Get the last page in the table
-	MyDB_PageReaderWriter lastPage = (*this)[lastPageIndex];
+	// MyDB_PageReaderWriter lastPage = (*this)[lastPageIndex];
+	MyDB_PageReaderWriter lastPage = this->lastPageRW;
 
 	// Append to the last page in the table
 	// If that fails, create a new page and append it to there instead

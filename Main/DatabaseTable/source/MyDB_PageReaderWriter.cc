@@ -6,8 +6,12 @@
 #include "MyDB_PageHeader.h"
 #include "MyDB_RecordIterator_Page.h"
 
-MyDB_PageReaderWriter::MyDB_PageReaderWriter(MyDB_PageHandleBase pageToManage): myPage(pageToManage) {
+MyDB_PageReaderWriter::MyDB_PageReaderWriter(MyDB_PageHandle pageToManage): myPage(pageToManage) {
     // The initializer list handles everything. The body can be empty.
+}
+
+MyDB_PageReaderWriter::MyDB_PageReaderWriter() {
+
 }
 
 // empties out the contents of this page, so that it has no records in it
@@ -17,7 +21,7 @@ void MyDB_PageReaderWriter :: clear () {
 	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
 
 	// Get the raw pointer to the page's bytes
-    void* rawBytes = this->myPage.getBytes();
+    void* rawBytes = this->myPage->getBytes();
 
     // If this happens, it means clear() was called inappropriately.
     if (rawBytes == nullptr) {
@@ -34,6 +38,9 @@ void MyDB_PageReaderWriter :: clear () {
 	// Sets the correct page type
 	header->pageType = MyDB_PageType::RegularPage;
 
+	// Mark the page as dirty 
+	this->myPage->wroteBytes();
+
 }
 
 MyDB_PageType MyDB_PageReaderWriter :: getType () {
@@ -41,7 +48,7 @@ MyDB_PageType MyDB_PageReaderWriter :: getType () {
 	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
 
 	// Get the raw pointer to the page's bytes
-    void* rawBytes = this->myPage.getBytes();
+    void* rawBytes = this->myPage->getBytes();
 
     // If this happens, it means clear() was called inappropriately.
     if (rawBytes == nullptr) {
@@ -64,7 +71,7 @@ void MyDB_PageReaderWriter :: setType (MyDB_PageType toMe) {
 	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
 
 	// Get the raw pointer to the page's bytes
-    void* rawBytes = this->myPage.getBytes();
+    void* rawBytes = this->myPage->getBytes();
 
     // If this happens, it means clear() was called inappropriately.
     if (rawBytes == nullptr) {
@@ -76,6 +83,9 @@ void MyDB_PageReaderWriter :: setType (MyDB_PageType toMe) {
 
 	// Set page type to toMe.
 	header->pageType = toMe;
+
+	// Mark the page as dirty
+	this->myPage->wroteBytes();
 }
 
 bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr appendMe) {
@@ -83,7 +93,7 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr appendMe) {
 	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
 
 	// Get the raw pointer to the page's bytes
-    void* rawBytes = this->myPage.getBytes();
+    void* rawBytes = this->myPage->getBytes();
 
     // If this happens, it means clear() was called inappropriately.
     if (rawBytes == nullptr) {
@@ -93,7 +103,7 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr appendMe) {
 	// Cast rawBytes to a PageHeader.
     PageHeader* header = (PageHeader*)rawBytes;
 	
-	size_t pageSize = this->myPage.getParent().getPageSize();
+	size_t pageSize = this->myPage->getParent().getPageSize();
 
 	// Get the record size (amount of data in the record buffer).
 	size_t recordSize = appendMe->getBinarySize();
@@ -113,6 +123,9 @@ bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr appendMe) {
 	// Update offset and numRecordsin header
 	header->endOfData += recordSize;
 	header->numRecords++;
+
+	// Mark the page as dirty
+	this->myPage->wroteBytes();
 
 
 	return true;

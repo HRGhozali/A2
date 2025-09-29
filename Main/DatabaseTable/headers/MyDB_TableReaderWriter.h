@@ -7,6 +7,7 @@
 #include "MyDB_Record.h"
 #include "MyDB_RecordIterator.h"
 #include "MyDB_Table.h"
+#include "MyDB_PageReaderWriter.h"
 
 // create a smart pointer for the catalog
 using namespace std;
@@ -57,6 +58,8 @@ private:
 
 	// Pointer to buffer manager
 	MyDB_BufferManagerPtr myBuffer;
+
+	MyDB_PageReaderWriter lastPageRW;
 
 	// Page size
 	size_t pageSize;

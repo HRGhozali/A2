@@ -7,8 +7,16 @@
 #include "MyDB_Page.h"
 #include "sstream"
 
+// (Header*) myHeader=myPage->getBytes();
+// int validbytes = myHeader->endOfData + sizeof(Header);
+// if(validbytes<=bytesConsumed) // done
+// else {
+//     (char*)nextRecPos=bytesConsumed+(char*)myPage->getBytes()+sizeof(Header); // bytesconsumed = current pos, starts at 0 if first record
+//     read next rec from nextRecPos w fromBinary
+// }
+
 // Constructor - Initializes the reference in the initializer list (errror fix)
- MyDB_RecordIterator_Page::MyDB_RecordIterator_Page (MyDB_PageReaderWriter& parent, MyDB_PageHandleBase iterateOverPage, MyDB_RecordPtr iterateIntoMe) :
+ MyDB_RecordIterator_Page::MyDB_RecordIterator_Page (MyDB_PageReaderWriter& parent, MyDB_PageHandle iterateOverPage, MyDB_RecordPtr iterateIntoMe) :
     parent(parent),
     iteratePage(iterateOverPage),
     iterateIntoMe(iterateIntoMe)
@@ -20,18 +28,25 @@
 // Reads the next record from the page into the iterateIntoMe record (assumes it exists)
 // this should be called BEFORE the iterator record is first examined
 void MyDB_RecordIterator_Page::getNext() {
+    size_t validBytes = sizeof(PageHeader) + currentPos;
+    cout << "RecordIterator_Page VALID BYTES: " << validBytes << endl;
     cout << "RecordIterator_Page getNext()\n";
-    void* rawBytes = this->iteratePage.getBytes();
+    void* rawBytes = this->iteratePage->getBytes(); // currpos
+    // calc size of page + header size
+    // frombinary
+    // subtract rawbytes from above
     if (rawBytes == nullptr) {
         throw runtime_error("Error: getNext() called on a page with no buffer.");
     }
 
     char* pageBytes = (char*)rawBytes;
     // page size (for bounds checks)
-    size_t pageSize = this->iteratePage.getParent().getPageSize();
+    size_t pageSize = this->iteratePage->getParent().getPageSize();
     char* pageEnd = pageBytes + pageSize;
 
     PageHeader* header = (PageHeader*) pageBytes;
+//     int vlaidButes = he
+// oezis + ataDfOdne>-red
 
     // Pointer to the current record's location (absolute)
     char* currentRecLoc = pageBytes + currentPos;
@@ -102,7 +117,7 @@ bool MyDB_RecordIterator_Page::hasNext() {
     cout << "RecordIterator_Page hasNext()\n";
     // Get the raw pointer, which could be null
     cout << "RECORD PAGE DEBUG: Getting raw pointer" << endl;
-    void* rawBytes = this->iteratePage.getBytes();
+    void* rawBytes = this->iteratePage->getBytes();
 
     // Check for null before using the pointer
     if (rawBytes == nullptr) {

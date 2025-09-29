@@ -7,8 +7,12 @@
 #define MYDB_PAGETYPE_WRAPPER
 #include "MyDB_PageType.h"
 #endif 
+#include "MyDB_BufferManager.h"
+#include "MyDB_Record.h"
+#include "MyDB_RecordIterator.h"
+#include "MyDB_Table.h"
+#include "MyDB_PageHandle.h"
 
-#include "MyDB_TableReaderWriter.h"
 
 // Forward declare the iterator
 class MyDB_RecordIterator;
@@ -21,7 +25,8 @@ public:
 	// ANY OTHER METHODS YOU WANT HERE
 
 	/* Constructor: creates a reader/write for a specific page */
-	MyDB_PageReaderWriter(MyDB_PageHandleBase pageToManage);
+	MyDB_PageReaderWriter(MyDB_PageHandle pageToManage);
+	MyDB_PageReaderWriter();
 
 	// empties out the contents of this page, so that it has no records in it
 	// the type of the page is set to MyDB_PageType :: RegularPage
@@ -49,7 +54,7 @@ private:
 	string fileName;
 
 	// A smart pointer to the underlaying page whose data we're reading/writing.
-	MyDB_PageHandleBase myPage;
+	MyDB_PageHandle myPage;
 
 	// Friend class declaration so that iterator can access myPage.
 	friend class MyDB_RecordIterator_Page;
