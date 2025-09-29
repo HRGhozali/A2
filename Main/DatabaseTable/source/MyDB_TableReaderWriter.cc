@@ -151,7 +151,7 @@ void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
 }
 
 size_t MyDB_TableReaderWriter :: getNumPages () {
-	return this->myTable->lastPage() + 1;
+    return (this->myTable->lastPage() < 0) ? 0 : (size_t)this->myTable->lastPage() + 1;
 }
 
 #endif
