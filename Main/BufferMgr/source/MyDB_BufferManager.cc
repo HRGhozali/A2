@@ -142,16 +142,16 @@ void MyDB_BufferManager :: killPage (MyDB_PagePtr killMe) {
 }
 
 void MyDB_BufferManager :: access (MyDB_PagePtr updateMe) {
-	cout << "BUFFER DEBUG: Accessing page" << endl;
+	//cout << "BUFFER DEBUG: Accessing page" << endl;
 	// if this page was just accessed, get outta here
 	if (updateMe->timeTick > lastTimeTick - (numPages / 2) && updateMe->bytes != nullptr) {
-		cout << "BUFFER DEBUG: Page just accessed, return" << endl;
+	//	cout << "BUFFER DEBUG: Page just accessed, return" << endl;
 		return;
 	}
-	cout << "BUFFER DEBUG: Checking in LRU list" << endl;
+	//cout << "BUFFER DEBUG: Checking in LRU list" << endl;
 	// first, see if it is currently in the LRU list; if it is, update it
 	if (lastUsed.count (updateMe) == 1) {
-		cout << "BUFFER DEBUG: updateMe count = 1" << endl;
+	//	cout << "BUFFER DEBUG: updateMe count = 1" << endl;
 		auto page = *(lastUsed.find (updateMe));
 		lastUsed.erase (page);
 		updateMe->timeTick = ++lastTimeTick;
@@ -159,7 +159,7 @@ void MyDB_BufferManager :: access (MyDB_PagePtr updateMe) {
 
 	// here, we don't have the bytes...
 	} else if (updateMe->bytes == nullptr) {
-		cout << "BUFFER DEBUG: Getting page bytes" << endl;
+	//	cout << "BUFFER DEBUG: Getting page bytes" << endl;
 		// not in the LRU list means that we don't have its contents buffered
 		// see if there is space
 		if (availableRam.size () == 0)

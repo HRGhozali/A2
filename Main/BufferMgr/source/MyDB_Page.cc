@@ -17,7 +17,7 @@
 #include "MyDB_Table.h"
 
 void *MyDB_Page :: getBytes (MyDB_PagePtr me) {
-	cout << "PAGE DEBUG: Getting page bytes" << endl;
+//	cout << "PAGE DEBUG: Getting page bytes" << endl;
 	parent.access (me);	
 	return bytes;
 }

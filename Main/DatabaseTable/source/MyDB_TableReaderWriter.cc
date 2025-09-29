@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string>
@@ -67,7 +68,7 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 		for (size_t p = lastPageIndex + 1; p <= i; p++) {
 			//cout << "Making page " << p << endl;
 			MyDB_PageHandle intermediatePageHandle = this->myBuffer->getPage(this->myTable, p);
-			MyDB_PageReaderWriter newPage(intermediatePageHandle);  // ->getPage()
+			MyDB_PageReaderWriter newPage(intermediatePageHandle);  
 			newPage.clear();
 		}
 		// Update the table's metadata to reflect the new last page.
@@ -78,7 +79,7 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 	// Get a handle to the requested page "i"
 	MyDB_PageHandle requestedPage = this->myBuffer->getPage(this->myTable, i);
 
-	return  MyDB_PageReaderWriter(requestedPage);  // ->getPage()
+	return  MyDB_PageReaderWriter(requestedPage);  
 }
 
 MyDB_RecordPtr MyDB_TableReaderWriter :: getEmptyRecord () {
@@ -96,7 +97,6 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
     }
 
 	// Get the last page in the table
-	// MyDB_PageReaderWriter lastPage = (*this)[lastPageIndex];
 	MyDB_PageReaderWriter lastPage = this->lastPageRW;
 
 	// Append to the last page in the table
@@ -149,39 +149,31 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 
 MyDB_RecordIteratorPtr MyDB_TableReaderWriter :: getIterator (MyDB_RecordPtr iterateIntoMe) {
 	// Create iterator that will scan the whole table.
-	cout << "TABLE READ/WRITE DEBUG: Getting iterator" << endl;
+	//cout << "TABLE READ/WRITE DEBUG: Getting iterator" << endl;
 	return make_shared<MyDB_RecordIterator_Table>(*this, iterateIntoMe);
 }
 
 void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
-	// Open the file to write to it
-	int file = open(toMe.c_str(), O_RDWR | O_CREAT | O_FSYNC | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-	if (file < 0) {
-		cerr << "Error: cannot open file " << toMe << " for writing." << endl;
-		exit (1);
-	}
-	
-	// Runs for every page in the table
-	for (size_t i = 0; i < this->myTable->lastPage() + 1; i++) {
-		// Access the current page w/ a new reader/writer
-		MyDB_PageReaderWriter currPage = (*this)[i];
+	ofstream file(toMe);
+	if (!file.is_open()) {
+        cerr << "Error: could not open text file " << toMe << endl;
+        return;
+    }
 
-		// Create a record pointer to store records + an iterator to iterate over them
-		MyDB_RecordPtr tempRecord = this->getEmptyRecord();
-		MyDB_RecordIteratorPtr pageIter = currPage.getIterator(tempRecord);
+	MyDB_RecordPtr temp = this->getEmptyRecord();
+	MyDB_RecordIteratorPtr tableIter = this->getIterator(temp);
+	stringstream sstream;
+	string tempVar;
 
-		// Iterate through all records in the page + write them to the file
-		while (pageIter->hasNext()) {
-			pageIter->getNext();
-			size_t tempSize = tempRecord->getBinarySize();
-			char* temp = new char[tempSize];
-			tempRecord->toBinary(temp);
-			write(file, temp, tempSize);
-			delete[] temp;
-		}
+	while(tableIter->hasNext()) {
+		tableIter->getNext();
+		sstream << temp;
+		tempVar = sstream.str();
+		sstream.str("");
+		file << tempVar << endl;
 	}
 
-	close(file);  // Closes the file
+	file.close();
 }
 
 size_t MyDB_TableReaderWriter :: getNumPages () {

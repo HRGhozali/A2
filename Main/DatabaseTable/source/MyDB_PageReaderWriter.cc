@@ -17,9 +17,6 @@ MyDB_PageReaderWriter::MyDB_PageReaderWriter() {
 // empties out the contents of this page, so that it has no records in it
 // the type of the page is set to MyDB_PageType :: RegularPage
 void MyDB_PageReaderWriter :: clear () {
-	// Get the page header
-	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
-
 	// Get the raw pointer to the page's bytes
     void* rawBytes = this->myPage->getBytes();
 
@@ -44,9 +41,6 @@ void MyDB_PageReaderWriter :: clear () {
 }
 
 MyDB_PageType MyDB_PageReaderWriter :: getType () {
-	// Get the page header
-	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
-
 	// Get the raw pointer to the page's bytes
     void* rawBytes = this->myPage->getBytes();
 
@@ -67,9 +61,6 @@ MyDB_RecordIteratorPtr MyDB_PageReaderWriter :: getIterator (MyDB_RecordPtr iter
 }
 
 void MyDB_PageReaderWriter :: setType (MyDB_PageType toMe) {
-	// Get page header
-	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
-
 	// Get the raw pointer to the page's bytes
     void* rawBytes = this->myPage->getBytes();
 
@@ -89,9 +80,6 @@ void MyDB_PageReaderWriter :: setType (MyDB_PageType toMe) {
 }
 
 bool MyDB_PageReaderWriter :: append (MyDB_RecordPtr appendMe) {
-	// Get the page header
-	//PageHeader* header = (PageHeader*) this->myPage->getBytes(this->myPage);
-
 	// Get the raw pointer to the page's bytes
     void* rawBytes = this->myPage->getBytes();
 
