@@ -156,15 +156,11 @@ void MyDB_TableReaderWriter :: writeIntoTextFile (string toMe) {
 
 	MyDB_RecordPtr temp = this->getEmptyRecord();
 	MyDB_RecordIteratorPtr tableIter = this->getIterator(temp);
-	stringstream sstream;
-	string tempVar;
 
 	while(tableIter->hasNext()) {
 		tableIter->getNext();
-		sstream << temp;
-		tempVar = sstream.str();
-		sstream.str("");
-		file << tempVar << endl;
+	
+		file << temp << endl;
 	}
 
 	file.close();
