@@ -20,8 +20,6 @@
 // Reads the next record from the page into the iterateIntoMe record (assumes it exists)
 // this should be called BEFORE the iterator record is first examined
 void MyDB_RecordIterator_Page::getNext() {
-    //cout << "RecordIterator_Page getNext()\n";
-
     // Get raw bytes
     void* rawBytes = this->iteratePage->getBytes(); // currpos
     
@@ -58,21 +56,17 @@ void MyDB_RecordIterator_Page::getNext() {
 // Returns true iff there is another record in the page
 // Checks if the currentPos is still within the used data area of the page.
 bool MyDB_RecordIterator_Page::hasNext() {
-    //cout << "RecordIterator_Page hasNext()\n";
-    //cout << "RECORD PAGE DEBUG: Getting raw pointer" << endl;
-    
     // Get the raw pointer, which could be null
     void* rawBytes = this->iteratePage->getBytes();
 
     // Check for null before using the pointer
     if (rawBytes == nullptr) {
-    //    cout << "page has no valid memory buffer\n";
         return false;
     }
 
-    //cout << "getting page header\n";
+    // Get page header
     PageHeader* header = (PageHeader*)rawBytes;
-    //cout << "returning if next\n";
+
     // There is a next record if the current position is before the end of the data end.
     return this->currentPos < (sizeof(PageHeader) + header->endOfData);
 }

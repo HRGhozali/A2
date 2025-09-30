@@ -1,0 +1,9 @@
+Alejandro Lucena, ajl18
+Harrison Rey Ghozali, rg157
+
+Important information:
+1. We added at least 1 test to RecordQUnit.cc to handle things like writing to files. 
+As I wasn't sure how to test it in terms of the result variable, you can check emptyFile.tbl 
+in Build after running our test case 11 for the result.
+2. If some files we weren't meant to edit have slight line count differences, it's because 
+we added and removed a few debug cout statements. Apart from that, they should be the same.

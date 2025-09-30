@@ -15,12 +15,10 @@ MyDB_RecordIterator_Table::MyDB_RecordIterator_Table (MyDB_TableReaderWriter &pa
 
     // Check if the table has any pages before trying to get an iterator.
     if (this->parent.getNumPages() > 0) {
-        //cout << "RECORD TABLE DEBUG: Getting first page iterator" << endl;
         // Get the iterator for the first page.
         this->pageIterator = this->parent[this->currentPage].getIterator(iterateIntoMe);
     } else {
         // If the table is empty, store a nullptr.
-        //cout << "RECORD TABLE DEBUG: Table empty" << endl;
         this->pageIterator = nullptr;
     }
 
@@ -32,22 +30,18 @@ MyDB_RecordIterator_Table::MyDB_RecordIterator_Table (MyDB_TableReaderWriter &pa
 void MyDB_RecordIterator_Table::getNext() {
     // Rely on hasNext() to have set up the correct page iterator.
     // Delegate the actual work to the underlying page iterator.
-    //cout << "RecordIterator_Table getNext()\n";
     this->pageIterator->getNext();
 }
 
 // return true iff there is another record in the file
 bool MyDB_RecordIterator_Table::hasNext() {
-    //cout << "RecordIterator_Table hasNext()\n";
     // If table empty
     if (!this->pageIterator) {
-    //    cout << "RECORD TABLE DEBUG: Table empty" << endl;
         return false;
     }
 
     // If current page has more records
     if (this->pageIterator->hasNext()) {
-    //    cout << "RECORD TABLE DEBUG: Page has next" << endl;
         return true;
     }
 
@@ -58,11 +52,9 @@ bool MyDB_RecordIterator_Table::hasNext() {
     while (nextPage <= lastPageIndex) {
         // move to nextPage
         this->currentPage = nextPage;
-    //    cout << "RECORD TABLE DEBUG: Moving to new page" << endl;
 
         this->pageIterator = this->parent[this->currentPage].getIterator(iterateIntoMe);
         if (this->pageIterator && this->pageIterator->hasNext()) {
-    //        cout << "RECORD TABLE DEBUG: Found non-empty page" << endl;
             return true;
         }
         nextPage++;

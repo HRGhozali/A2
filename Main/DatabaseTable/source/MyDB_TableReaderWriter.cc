@@ -23,11 +23,9 @@ MyDB_TableReaderWriter :: MyDB_TableReaderWriter (MyDB_TablePtr forMe, MyDB_Buff
 {
 	this->pageSize = myBuffer->getPageSize();
 	if (this->myTable->lastPage() == -1) {
-		// TODO: create page
 		MyDB_PageHandle intermediatePageHandle = this->myBuffer->getPage(this->myTable, 0);
 		MyDB_PageReaderWriter newPage(intermediatePageHandle);
 		newPage.clear();
-		// TODO: Make header overlay for page
 		this->lastPageRW = newPage;
 		this->myTable->setLastPage(0);
 	}
@@ -64,15 +62,12 @@ MyDB_PageReaderWriter MyDB_TableReaderWriter :: operator [] (size_t i) {
 	//  if i > lastPageIndex, create an empty page up to and including the requested page.
 	//  Each of those pages will have no records.
 	if ((int)i > lastPageIndex) {
-		//cout << "i > lastPageIndex; making new pages" << endl;
 		for (size_t p = lastPageIndex + 1; p <= i; p++) {
-			//cout << "Making page " << p << endl;
 			MyDB_PageHandle intermediatePageHandle = this->myBuffer->getPage(this->myTable, p);
 			MyDB_PageReaderWriter newPage(intermediatePageHandle);  
 			newPage.clear();
 		}
 		// Update the table's metadata to reflect the new last page.
-		//cout << "New last page: " << i << endl;
 		this->myTable->setLastPage(i);
 	}
 
@@ -149,7 +144,6 @@ void MyDB_TableReaderWriter :: loadFromTextFile (string fromMe) {
 
 MyDB_RecordIteratorPtr MyDB_TableReaderWriter :: getIterator (MyDB_RecordPtr iterateIntoMe) {
 	// Create iterator that will scan the whole table.
-	//cout << "TABLE READ/WRITE DEBUG: Getting iterator" << endl;
 	return make_shared<MyDB_RecordIterator_Table>(*this, iterateIntoMe);
 }
 

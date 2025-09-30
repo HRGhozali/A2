@@ -11,7 +11,7 @@ MyDB_PageReaderWriter::MyDB_PageReaderWriter(MyDB_PageHandle pageToManage): myPa
 }
 
 MyDB_PageReaderWriter::MyDB_PageReaderWriter() {
-
+	// Empty constructor
 }
 
 // empties out the contents of this page, so that it has no records in it
