@@ -538,6 +538,63 @@ int main(int argc, char *argv[]) {
 		QUNIT_IS_TRUE(result);
 	}
 	FALLTHROUGH_INTENDED;
+	case 13:
+	{
+		// Test write/load round trip verification (write and then load)
+		cout << "TEST 13..." << flush;
+		initialize();
+		bool result = true;
+		{
+			MyDB_CatalogPtr myCatalog = make_shared<MyDB_Catalog>("catFile");
+			map<string, MyDB_TablePtr> allTables = MyDB_Table::getAllTables(myCatalog);
+			MyDB_BufferManagerPtr myMgr = make_shared<MyDB_BufferManager>(1024, 16, "tempFile");
+
+			// 1. Get the original table and write it to a new file
+			MyDB_TableReaderWriter originalTable(allTables["supplier"], myMgr);
+			originalTable.writeIntoTextFile("supplier_copy.tbl");
+
+			// 2. Create a new table with the same schema
+			MyDB_SchemaPtr schema = allTables["supplier"]->getSchema();
+			MyDB_TablePtr newTablePtr = make_shared<MyDB_Table>("supplier_copy", "supplier_copy.bin", schema);
+			MyDB_TableReaderWriter newTable(newTablePtr, myMgr);
+
+			// 3. Load the newly created text file into the new table
+			newTable.loadFromTextFile("supplier_copy.tbl");
+
+			// 4. Verify that the tables are identical
+			MyDB_RecordPtr rec1 = originalTable.getEmptyRecord();
+			MyDB_RecordPtr rec2 = newTable.getEmptyRecord();
+			MyDB_RecordIteratorPtr iter1 = originalTable.getIterator(rec1);
+			MyDB_RecordIteratorPtr iter2 = newTable.getIterator(rec2);
+
+			int count = 0;
+			while (iter1->hasNext() && iter2->hasNext()) {
+				iter1->getNext();
+				iter2->getNext();
+				count++;
+
+				// Use stringstream to convert records to strings for comparison
+				stringstream ss1, ss2;
+				ss1 << rec1;
+				ss2 << rec2;
+
+				if (ss1.str() != ss2.str()) {
+					cout << "***FAIL*** Tables are not identical at record " << count << endl;
+					result = false;
+					break;
+				}
+			}
+
+			// Make sure one table is not longer than the other
+			if (result && (iter1->hasNext() || iter2->hasNext())) {
+				cout << "***FAIL*** Tables have different numbers of records." << endl;
+				result = false;
+			}
+		}
+		if (result) cout << "CORRECT" << endl << flush;
+		QUNIT_IS_TRUE(result);
+	}
+	FALLTHROUGH_INTENDED;
 	default:
 		break;
 	}
