@@ -482,9 +482,58 @@ int main(int argc, char *argv[]) {
 			MyDB_TableReaderWriter supplierTable(allTables["supplier"], myMgr);
 			MyDB_RecordPtr temp = supplierTable.getEmptyRecord();
 
+			cout << "calling writeIntoTextFile..." << flush;
 			supplierTable.writeIntoTextFile("emptyFile.tbl");
 		}
-		if (result == true) cout << "CORRECT" << endl << flush;
+		if (result == true) cout << "CORRECT (CHECK emptyFile.tbl)" << endl << flush;
+		else cout << "***FAIL***" << endl << flush;
+		QUNIT_IS_TRUE(result);
+	}
+	FALLTHROUGH_INTENDED;
+	case 12:
+	{
+		// Test that different iterators can access the same thing independently
+		cout << "TEST 12..." << flush;
+		initialize();
+		bool result = true;
+		{
+			cout << "create manager..." << flush;
+			MyDB_CatalogPtr myCatalog = make_shared <MyDB_Catalog>("catFile");
+			map <string, MyDB_TablePtr> allTables = MyDB_Table::getAllTables(myCatalog);
+			MyDB_BufferManagerPtr myMgr = make_shared <MyDB_BufferManager>(1024, 16, "tempFile");
+
+			cout << "create TableReaderWriter..." << flush;
+			MyDB_TableReaderWriter supplierTable(allTables["supplier"], myMgr);
+
+			cout << "create record pointers and iterators..." << flush;
+			MyDB_RecordPtr temp1 = supplierTable.getEmptyRecord();
+			MyDB_RecordPtr temp2 = supplierTable.getEmptyRecord();
+			MyDB_RecordIteratorPtr myIter1 = supplierTable[0].getIterator(temp1);
+			MyDB_RecordIteratorPtr myIter2 = supplierTable[0].getIterator(temp2);
+
+			cout << "create strings + stringstreams..." << flush;
+			stringstream s1;
+			stringstream s2;
+			string recordVal1;
+			string recordVal2;
+
+			for (int i = 0; i < 5; i++) {
+				cout << "testing iteration " << i << "..." << flush;
+				myIter1->getNext();
+				myIter2->getNext();
+				s1 << temp1;
+				s2 << temp2;
+				recordVal1 = s1.str();
+				recordVal2 = s2.str();
+				s1.str("");
+				s1.clear();
+				s2.str("");
+				s2.clear();
+				// cout << recordVal1 << " vs " << recordVal2 << endl; //TEST
+				QUNIT_IS_TRUE(recordVal1 == recordVal2);
+			}
+		}
+		if (result == true) cout << "CORRECT (IF WRONG TEST THEN IT ISN'T)" << endl << flush;
 		else cout << "***FAIL***" << endl << flush;
 		QUNIT_IS_TRUE(result);
 	}
